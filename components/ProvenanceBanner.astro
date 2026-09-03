@@ -1,0 +1,123 @@
+---
+export type ContentCadence = 'perennial' | 'living-document' | 'diagnostic' | 'field-report' | 'archival';
+
+export interface ProvenanceProps {
+  cadence: ContentCadence;
+  author?: string;
+  createdDate?: string | Date;
+  updatedDate?: string | Date;
+  version?: string;
+  customNote?: string;
+  class?: string;
+}
+
+const {
+  cadence = 'living-document',
+  author = 'EdLove Working Group',
+  createdDate,
+  updatedDate,
+  version,
+  customNote,
+  class: className = '',
+} = Astro.props as ProvenanceProps;
+
+const cadenceConfig: Record<
+  ContentCadence,
+  { label: string; badgeClass: string; icon: string; defaultNote: string }
+> = {
+  perennial: {
+    label: 'Foundational Canon',
+    badgeClass: 'bg-emerald-500/10 text-emerald-800 border-emerald-500/20',
+    icon: '🏛️',
+    defaultNote: 'Perennial philosophy. Maintained as stable foundational canon that rarely changes.',
+  },
+  'living-document': {
+    label: 'Living Document',
+    badgeClass: 'bg-amber-500/10 text-amber-800 border-amber-500/20',
+    icon: '🌱',
+    defaultNote: 'Active working framework. Reviewed and refined periodically as practices evolve.',
+  },
+  diagnostic: {
+    label: 'Empirical Diagnostic',
+    badgeClass: 'bg-sky-500/10 text-sky-800 border-sky-500/20',
+    icon: '📊',
+    defaultNote: 'Time-sensitive empirical field data reflecting surveyed conditions and realities.',
+  },
+  'field-report': {
+    label: 'Field Dispatch',
+    badgeClass: 'bg-purple-500/10 text-purple-800 border-purple-500/20',
+    icon: '🧭',
+    defaultNote: 'On-the-ground observations and intervention records from specific moments in time.',
+  },
+  archival: {
+    label: 'Archival Record',
+    badgeClass: 'bg-slate-500/10 text-slate-700 border-slate-500/20',
+    icon: '📜',
+    defaultNote: 'Historical documentation preserved for institutional memory and context.',
+  },
+};
+
+const current = cadenceConfig[cadence] || cadenceConfig['living-document'];
+const note = customNote || current.defaultNote;
+
+function formatDate(d?: string | Date): string | null {
+  if (!d) return null;
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(dateObj.getTime())) return null;
+  return dateObj.toLocaleDateString('en-GB', {
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+const formattedCreated = formatDate(createdDate);
+const formattedUpdated = formatDate(updatedDate);
+---
+
+<div
+  class:list={[
+    "w-full max-w-3xl mx-auto rounded-2xl border border-black/5 bg-white/40 backdrop-blur-md p-4 sm:p-5 shadow-xs transition-all duration-300",
+    className
+  ]}
+  role="region"
+  aria-label="Document Provenance and Update Cadence"
+>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+    <!-- Cadence badge and author -->
+    <div class="flex flex-wrap items-center gap-2">
+      <span class:list={["inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold tracking-wide", current.badgeClass]}>
+        <span>{current.icon}</span>
+        <span>{current.label}</span>
+      </span>
+      <span class="text-[var(--color-midnightInk)]/70 font-sans font-medium">
+        by <strong class="font-semibold text-[var(--color-midnightInk)]">{author}</strong>
+      </span>
+    </div>
+
+    <!-- Dates & Version -->
+    <div class="flex flex-wrap items-center gap-3 text-[var(--color-midnightInk)]/60 text-[11px]">
+      {formattedCreated && (
+        <span>
+          Est: <time datetime={typeof createdDate === 'string' ? createdDate : createdDate?.toISOString()}>{formattedCreated}</time>
+        </span>
+      )}
+      {formattedUpdated && (
+        <span class="flex items-center gap-1">
+          <span class="text-[var(--color-gold)]">●</span>
+          Rev: <time datetime={typeof updatedDate === 'string' ? updatedDate : updatedDate?.toISOString()}>{formattedUpdated}</time>
+        </span>
+      )}
+      {version && (
+        <span class="px-2 py-0.5 rounded-sm bg-black/5 text-[var(--color-midnightInk)]/80 font-bold">
+          {version}
+        </span>
+      )}
+    </div>
+  </div>
+
+  <!-- Cadence note (time sensitivity explanation) -->
+  <div class="mt-2.5 pt-2.5 border-t border-black/5 flex items-start gap-2 text-[12px] font-body text-[var(--color-midnightInk)]/65 italic leading-relaxed">
+    <span class="text-xs shrink-0 text-[var(--color-gold)] not-italic">ℹ</span>
+    <span>{note}</span>
+  </div>
+</div>

@@ -1,0 +1,221 @@
+---
+export type ContentCadence = 'perennial' | 'living-document' | 'diagnostic' | 'field-report' | 'archival';
+export type TranslationStatus = 'not_applicable' | 'draft' | 'machine_generated' | 'in_review' | 'approved';
+
+export interface Props {
+  author?: string;
+  scribe?: string;
+  scribeNote?: string;
+  publishDate?: Date | string;
+  updatedDate?: Date | string;
+  cadence?: ContentCadence;
+  version?: string;
+  license?: string;
+  canonicalUrl?: string;
+  readingTime?: number;
+  wordCount?: number;
+  customNote?: string;
+  translationStatus?: TranslationStatus;
+  translator?: string;
+  language?: string;
+  class?: string;
+}
+
+const {
+  author = 'Intuitui Labs',
+  scribe = 'Antigravity',
+  scribeNote,
+  publishDate,
+  updatedDate,
+  cadence = 'living-document',
+  version = 'v1.0',
+  license = 'CC-BY-NC-4.0',
+  canonicalUrl,
+  readingTime,
+  customNote,
+  translationStatus = 'not_applicable',
+  translator,
+  language = 'en',
+  class: className = '',
+} = Astro.props;
+
+const parsedPublished = publishDate ? (publishDate instanceof Date ? publishDate : new Date(publishDate)) : null;
+const parsedUpdated = updatedDate ? (updatedDate instanceof Date ? updatedDate : new Date(updatedDate)) : null;
+
+const formattedPublished = parsedPublished
+  ? new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(parsedPublished)
+  : null;
+
+const formattedUpdated = parsedUpdated
+  ? new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(parsedUpdated)
+  : null;
+
+const cadenceMap: Record<
+  ContentCadence,
+  { label: string; badge: string; icon: string; explanation: string }
+> = {
+  perennial: {
+    label: 'Foundational Canon',
+    badge: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30',
+    icon: '🏛️',
+    explanation: 'Perennial Philosophy. Maintained as stable, enduring canon that rarely changes.',
+  },
+  'living-document': {
+    label: 'Living Document',
+    badge: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30',
+    icon: '🌱',
+    explanation: 'Active Working Framework. Reviewed and updated periodically as systems evolve.',
+  },
+  diagnostic: {
+    label: 'Empirical Diagnostic',
+    badge: 'bg-sky-500/10 text-sky-800 dark:text-sky-300 border-sky-500/30',
+    icon: '📊',
+    explanation: 'Time-sensitive empirical field data reflecting surveyed ground conditions.',
+  },
+  'field-report': {
+    label: 'Field Dispatch',
+    badge: 'bg-purple-500/10 text-purple-800 dark:text-purple-300 border-purple-500/30',
+    icon: '🧭',
+    explanation: 'On-the-ground observations and intervention records from specific moments in time.',
+  },
+  archival: {
+    label: 'Archival Record',
+    badge: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30',
+    icon: '📜',
+    explanation: 'Historical record preserved for institutional context and lineage.',
+  },
+};
+
+const cadenceMeta = cadenceMap[cadence] || cadenceMap['living-document'];
+---
+
+<div class:list={["w-full", className]}>
+  <details class="group rounded-2xl bg-white/70 dark:bg-stone-900/70 backdrop-blur-md border border-slate-900/10 dark:border-white/10 shadow-xs transition-all duration-300 hover:border-slate-900/30 dark:hover:border-white/20 hover:shadow-sm overflow-hidden">
+    <!-- Compact Summary Byline (Always Visible, Single Line) -->
+    <summary class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 cursor-pointer list-none select-none text-xs font-mono text-slate-800 dark:text-slate-200">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <span class="font-bold text-slate-950 dark:text-white">{author}</span>
+        {formattedPublished && (
+          <>
+            <span class="opacity-40" aria-hidden="true">•</span>
+            <time datetime={parsedPublished?.toISOString()}>{formattedPublished}</time>
+          </>
+        )}
+        {formattedUpdated && (
+          <>
+            <span class="opacity-40" aria-hidden="true">•</span>
+            <span class="text-xs text-slate-600 dark:text-slate-400">Updated {formattedUpdated}</span>
+          </>
+        )}
+        {readingTime && (
+          <>
+            <span class="opacity-40 hidden sm:inline" aria-hidden="true">•</span>
+            <span class="hidden sm:inline opacity-70">{readingTime} min read</span>
+          </>
+        )}
+      </div>
+
+      <div class="flex items-center gap-2 ml-auto">
+        <!-- Cadence Badge -->
+        <span class:list={["inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border", cadenceMeta.badge]}>
+          <span aria-hidden="true">{cadenceMeta.icon}</span>
+          <span>{cadenceMeta.label}</span>
+          <span class="opacity-60">({version})</span>
+        </span>
+
+        <!-- Expand Indicator Icon -->
+        <span class="font-mono text-xs transition-transform duration-300 group-open:rotate-180 opacity-70" aria-hidden="true">
+          ▾
+        </span>
+      </div>
+    </summary>
+
+    <!-- Expanded Deep Rigor & Epistemic Provenance Drawer -->
+    <div class="border-t border-slate-900/10 dark:border-white/10 bg-slate-50/50 dark:bg-stone-950/50 p-6 sm:p-8 text-xs leading-relaxed font-mono text-slate-800 dark:text-slate-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Col 1: Stewardship & Authorship -->
+        <div class="space-y-1.5 border-b md:border-b-0 md:border-r border-slate-900/10 dark:border-white/10 pb-4 md:pb-0 md:pr-6">
+          <span class="block uppercase text-xs tracking-wider font-bold text-slate-500 dark:text-slate-400">
+            Stewardship & Authorship
+          </span>
+          <p class="font-bold text-sm text-slate-950 dark:text-white">{author}</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400">
+            <strong>Intent & Architecture:</strong> Authored by {author}.
+          </p>
+          {scribe && (
+            <div class="mt-2 pt-2 border-t border-slate-900/10 dark:border-white/10">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/5 dark:bg-white/5 text-xs font-mono border border-slate-900/10 dark:border-white/10">
+                <span aria-hidden="true">✍️</span>
+                <span>Scribe:</span>
+                <span class="font-bold">{scribe}</span>
+              </span>
+              <p class="text-xs text-slate-500 italic mt-1">
+                {scribeNote ?? `Synthesized and transcribed under authorial stewardship by ${scribe}.`}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <!-- Col 2: Epistemic Rigor & Dates -->
+        <div class="space-y-1.5 border-b md:border-b-0 md:border-r border-slate-900/10 dark:border-white/10 pb-4 md:pb-0 md:pr-6">
+          <span class="block uppercase text-xs tracking-wider font-bold text-slate-500 dark:text-slate-400">
+            Verification & Cadence
+          </span>
+          <div class="space-y-1 text-xs">
+            {formattedPublished && (
+              <div class="flex justify-between">
+                <span class="text-slate-500">First Inscribed:</span>
+                <span class="font-medium text-slate-900 dark:text-slate-100">{formattedPublished}</span>
+              </div>
+            )}
+            <div class="flex justify-between">
+              <span class="text-slate-500">Last Verified:</span>
+              <span class="font-medium text-slate-900 dark:text-slate-100">{formattedUpdated ?? formattedPublished ?? 'Continuous'}</span>
+            </div>
+            {readingTime && (
+              <div class="flex justify-between">
+                <span class="text-slate-500">Reading Pace:</span>
+                <span class="font-medium text-slate-900 dark:text-slate-100">{readingTime} min contemplative reading</span>
+              </div>
+            )}
+          </div>
+          <p class="text-xs text-slate-500 italic mt-2 border-t border-slate-900/10 dark:border-white/10 pt-1.5">
+            {customNote ?? cadenceMeta.explanation}
+          </p>
+        </div>
+
+        <!-- Col 3: Rights & Canonical Ledger -->
+        <div class="space-y-1.5">
+          <span class="block uppercase text-xs tracking-wider font-bold text-slate-500 dark:text-slate-400">
+            Open Knowledge Rights
+          </span>
+          <p class="font-bold text-slate-950 dark:text-white">{license}</p>
+          <p class="text-xs text-slate-600 dark:text-slate-400">
+            Free for educational attribution and non-commercial reproduction.
+          </p>
+          {canonicalUrl && (
+            <div class="pt-2">
+              <a
+                href={canonicalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 text-xs font-bold text-sky-700 dark:text-sky-400 hover:underline"
+              >
+                <span>Canonical Ledger & Source</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </details>
+</div>
